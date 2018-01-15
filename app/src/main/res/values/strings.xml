@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">GSenseDetection</string>
+    <string name="close">Close App</string>
+    <string name="close_app">Will Close this App</string>
+</resources>
