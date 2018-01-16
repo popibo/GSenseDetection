@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
     public float mf_old_time = System.currentTimeMillis();
     public float mfCurrentTime = 0;
     private float mfspeed = 0;
-    private static final int SHAKE_THRESHOLD = 800;
+    private static final int SHAKE_THRESHOLD = 20;
     private int mn_sensorType = 0;
 
     @Override
@@ -42,11 +42,6 @@ public class MainActivity extends AppCompatActivity {
         // use G sensor
         m_sm = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mn_sensorType = Sensor.TYPE_ACCELEROMETER;
-
-        // register
-        if (m_sm != null) {
-            m_sm.registerListener(myAccelerometerListener, m_sm.getDefaultSensor(mn_sensorType), SensorManager.SENSOR_DELAY_NORMAL);
-        }
     }
 
     // set G sensor listener
@@ -76,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
                     String z = String.valueOf(mf_new_G_vakyes[2]);
 
                     // shake rule
-                    mfspeed = Math.abs(mf_new_G_vakyes[0] + mf_new_G_vakyes[1] + mf_new_G_vakyes[2] - mf_old_G_vakyes[0] - mf_old_G_vakyes[1] - mf_old_G_vakyes[2]) / diffTime * 10000;
+                    mfspeed = Math.abs(mf_new_G_vakyes[0] + mf_new_G_vakyes[1] + mf_new_G_vakyes[2] - mf_old_G_vakyes[0] - mf_old_G_vakyes[1] - mf_old_G_vakyes[2]);
 
                     // show in list view
                     processview(x, y, z);
@@ -102,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void decisionClose(){
 
-        // if signature shake
+        // if significant shake
         if (mfspeed > SHAKE_THRESHOLD) {
 
             // pause G sensor listener
@@ -144,6 +139,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         Toast.makeText(this, "onResume Start", Toast.LENGTH_LONG).show();
+        // register
+        if (m_sm != null) {
+            m_sm.registerListener(myAccelerometerListener, m_sm.getDefaultSensor(mn_sensorType), SensorManager.SENSOR_DELAY_NORMAL);
+        }
         super.onResume();
     }
 
