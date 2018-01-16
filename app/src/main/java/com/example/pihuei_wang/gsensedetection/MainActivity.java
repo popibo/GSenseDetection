@@ -8,6 +8,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -21,26 +22,31 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final String TAG = "sensor";
-    private  SensorManager sm;
-    private float [] old_G_vakyes = {0,0,0};
-    private float [] new_G_vakyes = {0,0,0};
-    public double old_time = System.currentTimeMillis();;
-    public double current_time = 0;
-    float speed = 0;
+    private static final String msTAG = "sensor";
+    private  SensorManager m_sm = null;
+    private float [] mf_old_G_vakyes = {0,0,0};
+    private float [] mf_new_G_vakyes = {0,0,0};
+    public float mf_old_time = System.currentTimeMillis();
+    public float mfCurrentTime = 0;
+    private float mfspeed = 0;
     private static final int SHAKE_THRESHOLD = 800;
+    private int mn_sensorType = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        Toast.makeText(this, "onCreate Start", Toast.LENGTH_LONG).show();
+
         // use G sensor
-        sm = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        int sensorType = Sensor.TYPE_ACCELEROMETER; 
+        m_sm = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        mn_sensorType = Sensor.TYPE_ACCELEROMETER;
 
         // register
-        sm.registerListener(myAccelerometerListener,sm.getDefaultSensor(sensorType),SensorManager.SENSOR_DELAY_NORMAL);
+        if (m_sm != null) {
+            m_sm.registerListener(myAccelerometerListener, m_sm.getDefaultSensor(mn_sensorType), SensorManager.SENSOR_DELAY_NORMAL);
+        }
     }
 
     // set G sensor listener
@@ -50,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
 
         public void onSensorChanged(SensorEvent sensorEvent){
             if(sensorEvent.sensor.getType() == Sensor.TYPE_ACCELEROMETER){
-                Log.i(TAG,"onSensorChanged");
+                Log.i(msTAG,"onSensorChanged");
 
                 long curTime = System.currentTimeMillis();
                 // update every 100ms.
@@ -58,19 +64,19 @@ public class MainActivity extends AppCompatActivity {
                     long diffTime = (curTime - lastUpdate);
                     lastUpdate = curTime;
 
-                    new_G_vakyes[0] = sensorEvent.values[0];
-                    new_G_vakyes[1] = sensorEvent.values[1];
-                    new_G_vakyes[2] = sensorEvent.values[2];
-                    Log.i(TAG, "\n heading " + new_G_vakyes[0]);
-                    Log.i(TAG, "\n pitch " + new_G_vakyes[1]);
-                    Log.i(TAG, "\n roll " + new_G_vakyes[2]);
+                    mf_new_G_vakyes[0] = sensorEvent.values[0];
+                    mf_new_G_vakyes[1] = sensorEvent.values[1];
+                    mf_new_G_vakyes[2] = sensorEvent.values[2];
+//                    Log.i(msTAG, "\n heading " + mf_new_G_vakyes[0]);
+//                    Log.i(msTAG, "\n pitch " + mf_new_G_vakyes[1]);
+//                    Log.i(msTAG, "\n roll " + mf_new_G_vakyes[2]);
 
-                    String x = String.valueOf(new_G_vakyes[0]);
-                    String y = String.valueOf(new_G_vakyes[1]);
-                    String z = String.valueOf(new_G_vakyes[2]);
+                    String x = String.valueOf(mf_new_G_vakyes[0]);
+                    String y = String.valueOf(mf_new_G_vakyes[1]);
+                    String z = String.valueOf(mf_new_G_vakyes[2]);
 
                     // shake rule
-                    speed = Math.abs(new_G_vakyes[0] + new_G_vakyes[0] + new_G_vakyes[0] - old_G_vakyes[0] - old_G_vakyes[1] - old_G_vakyes[2]) / diffTime * 10000;
+                    mfspeed = Math.abs(mf_new_G_vakyes[0] + mf_new_G_vakyes[1] + mf_new_G_vakyes[2] - mf_old_G_vakyes[0] - mf_old_G_vakyes[1] - mf_old_G_vakyes[2]) / diffTime * 10000;
 
                     // show in list view
                     processview(x, y, z);
@@ -82,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         public void onAccuracyChanged(Sensor sensor , int accuracy){
-            Log.i(TAG, "onAccuracyChanged");
+            Log.i(msTAG, "onAccuracyChanged");
         }
     };
 
@@ -97,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
     private void decisionClose(){
 
         // if signature shake
-        if (speed > SHAKE_THRESHOLD) {
+        if (mfspeed > SHAKE_THRESHOLD) {
 
             // pause G sensor listener
             onPause();
@@ -116,11 +122,11 @@ public class MainActivity extends AppCompatActivity {
                     });
             d.show();
         }
-        current_time = System.currentTimeMillis();
-        if ((current_time - old_time) > 1000){
-            old_G_vakyes[0] = new_G_vakyes[0];
-            old_G_vakyes[1] = new_G_vakyes[1];
-            old_G_vakyes[2] = new_G_vakyes[2];
+        mfCurrentTime = System.currentTimeMillis();
+        if ((mfCurrentTime - mf_old_time) > 1000){
+            mf_old_G_vakyes[0] = mf_new_G_vakyes[0];
+            mf_old_G_vakyes[1] = mf_new_G_vakyes[1];
+            mf_old_G_vakyes[2] = mf_new_G_vakyes[2];
         }
     }
 
@@ -129,8 +135,40 @@ public class MainActivity extends AppCompatActivity {
         android.os.Process.killProcess(pid);
     }
 
+    @Override
+    protected void onStart() {
+        Toast.makeText(this, "onStart Start", Toast.LENGTH_LONG).show();
+        super.onStart();
+    }
+
+    @Override
+    protected void onResume() {
+        Toast.makeText(this, "onResume Start", Toast.LENGTH_LONG).show();
+        super.onResume();
+    }
+
+    @Override
+    protected void onStop() {
+        Toast.makeText(this, "onStop Start", Toast.LENGTH_LONG).show();
+        super.onStop();
+    }
+
+    @Override
+    protected void onDestroy() {
+        Toast.makeText(this, "onDestroy Start", Toast.LENGTH_LONG).show();
+        super.onDestroy();
+    }
+
+    @Override
+    protected void onRestart() {
+        Toast.makeText(this, "onRestart Start", Toast.LENGTH_LONG).show();
+        super.onRestart();
+    }
+
+    @Override
     public void onPause(){
-        sm.unregisterListener(myAccelerometerListener);
+        Toast.makeText(this, "onPause Start", Toast.LENGTH_LONG).show();
+        m_sm.unregisterListener(myAccelerometerListener);
         super.onPause();
     }
 }
